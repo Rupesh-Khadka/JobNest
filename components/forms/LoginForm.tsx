@@ -62,6 +62,7 @@ const Google = (props: SVGProps<SVGSVGElement>) => (
 );
 
 export async function LoginForm() {
+  
   const session = await auth();
   if (session?.user) {
     return redirect("/");
