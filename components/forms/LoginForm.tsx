@@ -62,8 +62,8 @@ const Google = (props: SVGProps<SVGSVGElement>) => (
 );
 
 export async function LoginForm() {
-  
   const session = await auth();
+
   if (session?.user) {
     return redirect("/");
   }
@@ -83,7 +83,7 @@ export async function LoginForm() {
               action={async () => {
                 "use server";
                 await signIn("google", {
-                  redirectTo: "/",
+                  redirectTo: "/onboarding",
                 });
               }}
             >
@@ -99,7 +99,7 @@ export async function LoginForm() {
               action={async () => {
                 "use server";
                 await signIn("github", {
-                  redirectTo: "/",
+                  redirectTo: "/onboarding",
                 });
               }}
             >
@@ -114,9 +114,9 @@ export async function LoginForm() {
         </CardContent>
       </Card>
 
-      <div className="text-center text-sm text-muted-foreground text-balance ">
-        By clicking continue, you agree to out terms and service and privacy
-        policy.
+      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
       </div>
     </div>
   );

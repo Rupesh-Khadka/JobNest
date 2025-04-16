@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "uploadthing/tw/v4";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -71,7 +72,6 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.541 0.281 293.009);
 }
-
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
