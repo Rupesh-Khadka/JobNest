@@ -33,3 +33,5 @@ export const jobSchema = z.object({
   companyDescription: z.string().min(1, "Company description is required"),
   listingDuration: z.number().min(1, "Listing duration is required"),
 });
+
+ 
