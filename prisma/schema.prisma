@@ -110,9 +110,9 @@ model JobPost {
   location        String
   salaryFrom      Int
   salaryTo        Int
-  jobdescription  String
+  jobDescription  String
   listingDuration Int
-  benefit         String[]
+  benefits         String[]
   status          JobPostStatus @default(DRAFT)
 
   createdAt DateTime @default(now())

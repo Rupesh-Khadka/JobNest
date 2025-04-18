@@ -37,16 +37,15 @@ export default function JobDescriptionEditor({
       field.onChange(JSON.stringify(editor.getJSON()));
     },
     content: field.value ? JSON.parse(field.value) : "",
-
     immediatelyRender: false,
   });
 
-  //   // Update editor content when form value changes externally
-  //   useEffect(() => {
-  //     if (editor && field.value && editor.getHTML() !== field.value) {
-  //       editor.commands.setContent(JSON.parse(field.value));
-  //     }
-  //   }, [editor, field.value]);
+  // Update editor content when form value changes externally
+  useEffect(() => {
+    if (editor && field.value && editor.getHTML() !== field.value) {
+      editor.commands.setContent(JSON.parse(field.value));
+    }
+  }, [editor, field.value]);
 
   return (
     <div className="w-full">

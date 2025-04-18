@@ -1,6 +1,7 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { countryList } from "@/app/utils/countriesList";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Form,
   FormControl,
@@ -9,12 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { jobSchema } from "@/app/utils/zodSchemas";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,57 +20,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { countryList } from "@/app/utils/countriesList";
-import Image from "next/image";
-import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 import { XIcon } from "lucide-react";
-import { UploadDropzone } from "../general/UploadThingReexported";
+import { Button } from "../ui/button";
+import Image from "next/image";
+// import { toast } from "sonner";
+
+import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { jobSchema } from "@/app/utils/zodSchemas";
 import { SalaryRangeSelector } from "../general/SalaryRangeSelector";
 import JobDescriptionEditor from "../richTextEditor/JobDescriptionEditor";
 import BenefitsSelector from "../general/BenefitsSelector";
+import { JobListingDurationSelector } from "../general/JobListingDurationSelector";
+import { UploadDropzone } from "../general/UploadThingReexported";
+import { createJob } from "@/app/action";
 
-// interface CreateJobFormProps {
-//   companyName: string;
-//   companyLocation: string;
-//   companyAbout: string;
-//   companyLogo: string;
-//   companyXAccount: string | null;
-//   companyWebsite: string;
-// }
+interface CreateJobFormProps {
+  companyName: string;
+  companyLocation: string;
+  companyAbout: string;
+  companyLogo: string;
+  companyXAccount: string | null;
+  companyWebsite: string;
+}
 
-export default function CreateJobForm() {
-  // {
-  //   companyAbout,
-  //   companyLocation,
-  //   companyLogo,
-  //   companyXAccount,
-  //   companyName,
-  //   companyWebsite,
-  // }: CreateJobFormProps)
+export function CreateJobForm({
+  companyAbout,
+  companyLocation,
+  companyLogo,
+  companyXAccount,
+  companyName,
+  companyWebsite,
+}: CreateJobFormProps) {
   const form = useForm<z.infer<typeof jobSchema>>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       benefits: [],
-      companyDescription: "companyAbout ",
-      companyLocation: "companyLocation",
-      companyName: "companyName",
-      companyWebsite: "companyWebsite",
-      companyXAccount: "companyXAccount",
+      companyDescription: companyAbout,
+      companyLocation: companyLocation,
+      companyName: companyName,
+      companyWebsite: companyWebsite,
+      companyXAccount: companyXAccount || "",
+      companyLogo: companyLogo,
       employmentType: "",
       jobDescription: "",
       jobTitle: "",
       location: "",
       salaryFrom: 0,
       salaryTo: 0,
-      companyLogo: "companyLogo",
       listingDuration: 30,
     },
   });
 
+  const [pending, setPending] = useState(false);
+  async function onSubmit(values: z.infer<typeof jobSchema>) {
+    try {
+      setPending(true);
+      await createJob(values);
+    } catch (error) {
+      // toast.error("Something went wrong. Please try again.");
+      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
+        // toast.error("Something went wrong. Please try again.");
+      }
+    } finally {
+      setPending(false);
+    }
+  }
   return (
     <Form {...form}>
       <form
-        //   onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="col-span-1   lg:col-span-2  flex flex-col gap-8"
       >
         <Card>
@@ -192,7 +210,7 @@ export default function CreateJobForm() {
                 <FormItem>
                   <FormLabel>Job Description</FormLabel>
                   <FormControl>
-                    <JobDescriptionEditor field={field as any} />
+                    <JobDescriptionEditor field={field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -215,13 +233,12 @@ export default function CreateJobForm() {
           </CardContent>
         </Card>
 
-        {/* Company Information */}
         <Card>
           <CardHeader>
             <CardTitle>Company Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid  md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="companyName"
@@ -276,7 +293,6 @@ export default function CreateJobForm() {
                 )}
               />
             </div>
-            
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -343,7 +359,7 @@ export default function CreateJobForm() {
               )}
             />
 
-            {/* <FormField
+            <FormField
               control={form.control}
               name="companyLogo"
               render={({ field }) => (
@@ -371,26 +387,25 @@ export default function CreateJobForm() {
                           </Button>
                         </div>
                       ) : (
-                        // <UploadDropzones
-                        //   endpoint="imageUploader"
-                        //   onClientUploadComplete={(res) => {
-                        //     field.onChange(res[0].url);
-                        //     toast.success("Logo uploaded successfully!");
-                        //   }}
-                        //   onUploadError={() => {
-                        //     toast.error(
-                        //       "Something went wrong. Please try again."
-                //     );
-                // }}
-                //         />s
-                <p>Hi</p>
+                        <UploadDropzone
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res) => {
+                            field.onChange(res[0].url);
+                            // toast.success("Logo uploaded successfully!");
+                          }}
+                          onUploadError={() => {
+                            // toast.error(
+                            //   "Something went wrong. Please try again."
+                            // );
+                          }}
+                        />
                       )}
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )} */}
-            {/* /> */}
+              )}
+            />
           </CardContent>
         </Card>
 
@@ -405,7 +420,7 @@ export default function CreateJobForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    {/* <JobListingDurationSelector field={field} /> */}
+                    <JobListingDurationSelector field={field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -413,9 +428,9 @@ export default function CreateJobForm() {
             />
           </CardContent>
         </Card>
-        {/* <Button type="submit" className="w-full" disabled={pending}>
+        <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Submitting..." : "Continue"}
-        </Button> */}
+        </Button>
       </form>
     </Form>
   );

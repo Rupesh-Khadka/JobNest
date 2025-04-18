@@ -1,4 +1,4 @@
-import arcject, {
+import arcjet, {
   detectBot,
   fixedWindow,
   shield,
@@ -7,7 +7,7 @@ import arcject, {
 
 export { detectBot, fixedWindow, shield, tokenBucket };
 
-export default arcject({
+export default arcjet({
   key: process.env.ARCJET_KEY!,
   rules: [],
 });
