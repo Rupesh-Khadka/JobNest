@@ -1,4 +1,4 @@
-import { CreateJobForm } from "@/components/forms/CreatJobForm";
+import CreateJobForm from "@/components/forms/CreatJobForm";
 import {
   Card,
   CardContent,
@@ -9,7 +9,6 @@ import {
 import ArJectLogo from "@/public/arcjet.jpg";
 import InngestLogo from "@/public/inngest.png";
 import Image from "next/image";
-import { quotelessJson } from "zod";
 
 const companies = [
   { id: 0, name: "ArcJet", logo: ArJectLogo },
@@ -63,7 +62,6 @@ const stats = [
 export default function PostJobPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
-        
       <CreateJobForm />
 
       <div className="col-span-1">
