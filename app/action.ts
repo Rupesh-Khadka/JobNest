@@ -1,12 +1,16 @@
 "use server";
 
 import { requireUser } from "./utils/requireUser";
-import { z } from "zod";
+import { custom, z } from "zod";
 import { companySchema, jobSchema, jobSeekerSchema } from "./utils/zodSchemas";
 import { prisma } from "./utils/db";
 import { redirect } from "next/navigation";
 import arcjet, { shield, detectBot } from "./utils/arcjet";
 import { request } from "@arcjet/next";
+import { stripe } from "./utils/stripe";
+import { JobListingDurationSelector } from "@/components/general/JobListingDurationSelector";
+import { jobListingDurationPricing } from "./utils/pricingTiers";
+import { inngest } from "./utils/inngest/client";
 
 const aj = arcjet
   .withRule(
@@ -97,12 +101,37 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
     },
     select: {
       id: true,
+      user: {
+        select: {
+          stripeCustomerId: true,
+        },
+      },
     },
   });
 
   if (!company) return redirect("/");
 
-  await prisma.jobPost.create({
+  let stripeCustomerId = company.user.stripeCustomerId;
+
+  if (!stripeCustomerId) {
+    const customer = await stripe.customers.create({
+      email: user?.email as string,
+      name: user?.name as string,
+    });
+
+    stripeCustomerId = customer.id;
+
+    await prisma.user.update({
+      where: {
+        id: user?.id,
+      },
+      data: {
+        stripeCustomerId: customer.id,
+      },
+    });
+  }
+
+  const jobPost = await prisma.jobPost.create({
     data: {
       companyId: company.id,
       jobDescription: validatedData.jobDescription,
@@ -114,38 +143,52 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
       listingDuration: validatedData.listingDuration,
       benefits: validatedData.benefits,
     },
+    select: {
+      id: true,
+    },
   });
-  return redirect("/");
+
+  const priceTire = jobListingDurationPricing.find(
+    (tier) => tier.days === validatedData.listingDuration
+  );
+
+  if (!priceTire) {
+    throw new Error("Invalid Listing selected ");
+  }
+
+  await inngest.send({
+    name: "job/created",
+    data: {
+      jobId: jobPost.id,
+      expirationDays: validatedData.listingDuration,
+    },
+  });
+
+  const session = await stripe.checkout.sessions.create({
+    customer: stripeCustomerId,
+    line_items: [
+      {
+        price_data: {
+          product_data: {
+            name: `Job Posting - ${priceTire.days} Days`,
+            description: priceTire.description,
+            images: [
+              "https://h4laay19ru.ufs.sh/f/BuzM0hEgKbXWwX2Qi7JOmkRJH0gML2QfVephG5cWEKFIoySa",
+            ],
+          },
+          currency: "USD",
+          unit_amount: priceTire.price * 100,
+        },
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      jobId: jobPost.id,
+    },
+    mode: "payment",
+    success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_URL}/payment/cancel`,
+  });
+
+  return redirect(session.url as string);
 }
-
-// export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
-//   const user = await requireUser();
-
-//   // Access the request object so Arcjet can analyze it
-//   const req = await request();
-//   // Call Arcjet protect
-//   const decision = await aj.protect(req);
-
-//   if (decision.isDenied()) {
-//     throw new Error("Forbidden");
-//   }
-
-//   const validatedData = jobSeekerSchema.parse(data);
-
-//   await prisma.user.update({
-//     where: {
-//       id: user?.id,
-//     },
-//     data: {
-//       onboardingCompleted: true,
-//       userType: "JOB_SEEKER",
-//       JobSeeker: {
-//         create: {
-//           ...validatedData,
-//         },
-//       },
-//     },
-//   });
-
-//   return redirect("/");
-// }

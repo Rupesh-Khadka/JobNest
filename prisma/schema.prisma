@@ -16,6 +16,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
+  stripeCustomerId String? @unique
+
   userType UserType?
 
   onboardingCompleted Boolean @default(false)
@@ -112,8 +114,9 @@ model JobPost {
   salaryTo        Int
   jobDescription  String
   listingDuration Int
-  benefits         String[]
-  status          JobPostStatus @default(DRAFT)
+  benefits        String[]
+
+  status JobPostStatus @default(DRAFT)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
