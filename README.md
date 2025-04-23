@@ -61,5 +61,5 @@ To get started with the project, clone the repository and follow the setup instr
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/jobnest.git
+git clone https://github.com/Rupesh-khadka/jobnest.git
 cd jobnest
