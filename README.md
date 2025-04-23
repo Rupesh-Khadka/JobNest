@@ -1,4 +1,13 @@
-# <img src="/Logo.png" width="150" alt="JobNest Logo" /> JobNest
+<div align="center">
+  <span style="display: inline-block; vertical-align: middle;">
+    <img src="/public/Logo.png" width="40" alt="JobNest Logo"  />
+  </span>
+  <span style="display: inline-block; vertical-align: middle; font-size: 2em; margin-left: 14px; padding-bottom: 4px;">
+    JobNest
+  </span>
+</div>
+
+
 
 **JobNest** is a full-featured, modern job portal built with performance, security, and user experience in mind. It provides a seamless platform for organizations to post jobs and for job seekers to apply with ease. Built with the latest technologies in the Next.js ecosystem, JobNest is optimized for speed, scalability, and maintainability.
 
