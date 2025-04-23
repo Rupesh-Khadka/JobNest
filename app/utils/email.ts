@@ -11,10 +11,15 @@ export async function sendEmail({
   subject: string;
   text: string;
 }) {
-  await resend.emails.send({
-    from: "JobNest <onboarding@resend.dev>",  
-    to,
-    subject,
-    text,
-  });
+  try {
+    const res = await resend.emails.send({
+      from: "JobNest <onboarding@resend.dev>",
+      to,
+      subject,
+      text,
+    });
+  } catch (error) {
+    console.error("❌ Failed to send email:", error);
+  }
 }
+

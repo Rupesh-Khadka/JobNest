@@ -5,10 +5,11 @@ import Image from "next/image";
 import Logo from "@/public/Logo.png";
 
 import { Menu } from "lucide-react";
- 
+
 import { auth } from "@/app/utils/auth";
 import { UserDropdown } from "./UserDropdown";
 import { ThemeToggle } from "./ThemeToogle";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 
 export async function Navbar() {
   const session = await auth();
@@ -18,7 +19,7 @@ export async function Navbar() {
       <Link href="/" className="flex items-center gap-2">
         <Image src={Logo} alt="Job Marshal Logo" width={40} height={40} />
         <h1 className="text-2xl font-bold">
-          Job<span className="text-primary">Marshal</span>
+          Job<span className="text-primary">Nest</span>
         </h1>
       </Link>
 
@@ -54,45 +55,44 @@ export async function Navbar() {
             image={session.user.image as string}
           />
         ) : (
-          // <Sheet>
-          //   <SheetTrigger asChild>
-          //     <Button variant="outline" size="icon">
-          //       <Menu className="h-6 w-6" />
-          //     </Button>
-          //   </SheetTrigger>
-          //   <SheetContent>
-          //     <SheetHeader className="text-left">
-          //       <SheetTitle>
-          //         Job<span className="text-primary">Marshal</span>
-          //       </SheetTitle>
-          //       <SheetDescription>
-          //         Find or post your next job opportunity
-          //       </SheetDescription>
-          //     </SheetHeader>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader className="text-left">
+                <SheetTitle>
+                  Job<span className="text-primary">Marshal</span>
+                </SheetTitle>
+                <SheetDescription>
+                  Find or post your next job opportunity
+                </SheetDescription>
+              </SheetHeader>
 
-          //     <div className="flex flex-col gap-4 mt-6">
-          //       <Link
-          //         href="/"
-          //         className="text-lg px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200"
-          //       >
-          //         Find New Job
-          //       </Link>
-          //       <Link
-          //         href="/post-job"
-          //         className="text-lg px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200"
-          //       >
-          //         Post a Job
-          //       </Link>
-          //       <Link
-          //         href="/login"
-          //         className="text-lg px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200"
-          //       >
-          //         Login
-          //       </Link>
-          //     </div>
-          //   </SheetContent>
-          // </Sheet>
-        <p>jhi</p>
+              <div className="flex flex-col gap-4 mt-6">
+                <Link
+                  href="/"
+                  className="text-lg px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200"
+                >
+                  Find New Job
+                </Link>
+                <Link
+                  href="/post-job"
+                  className="text-lg px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200"
+                >
+                  Post a Job
+                </Link>
+                <Link
+                  href="/login"
+                  className="text-lg px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200"
+                >
+                  Login
+                </Link>
+              </div>
+            </SheetContent>
+          </Sheet>
         )}
       </div>
     </nav>

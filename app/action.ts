@@ -1,16 +1,16 @@
 "use server";
 
 import { requireUser } from "./utils/requireUser";
-import { custom, z } from "zod";
+import { z } from "zod";
 import { companySchema, jobSchema, jobSeekerSchema } from "./utils/zodSchemas";
 import { prisma } from "./utils/db";
 import { redirect } from "next/navigation";
 import arcjet, { shield, detectBot } from "./utils/arcjet";
 import { request } from "@arcjet/next";
 import { stripe } from "./utils/stripe";
-import { JobListingDurationSelector } from "@/components/general/JobListingDurationSelector";
 import { jobListingDurationPricing } from "./utils/pricingTiers";
 import { inngest } from "./utils/inngest/client";
+import { revalidatePath } from "next/cache";
 
 const aj = arcjet
   .withRule(
@@ -57,14 +57,16 @@ export async function createCompany(data: z.infer<typeof companySchema>) {
 export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
   const user = await requireUser();
 
+  // Access the request object so Arcjet can analyze it
   const req = await request();
+  // Call Arcjet protect
   const decision = await aj.protect(req);
 
-  if (!decision.isDenied()) {
+  if (decision.isDenied()) {
     throw new Error("Forbidden");
   }
 
-  const validateData = jobSeekerSchema.parse(data);
+  const validatedData = jobSeekerSchema.parse(data);
 
   await prisma.user.update({
     where: {
@@ -75,11 +77,12 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
       userType: "JOB_SEEKER",
       JobSeeker: {
         create: {
-          ...validateData,
+          ...validatedData,
         },
       },
     },
   });
+
   return redirect("/");
 }
 
@@ -109,7 +112,7 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
     },
   });
 
-  if (!company) return redirect("/");
+  if (!company?.id) return redirect("/");
 
   let stripeCustomerId = company.user.stripeCustomerId;
 
@@ -191,4 +194,86 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
   });
 
   return redirect(session.url as string);
+}
+
+export async function saveJobPost(jobId: string) {
+  const user = await requireUser();
+
+  await prisma.savedJobPost.create({
+    data: {
+      jobId: jobId,
+      userId: user?.id as string,
+    },
+  });
+
+  revalidatePath(`/job/${jobId}`);
+}
+
+export async function unSaveJobPost(savedJobPostId: string) {
+  const user = await requireUser();
+
+  const data = await prisma.savedJobPost.delete({
+    where: {
+      id: savedJobPostId,
+      userId: user?.id as string,
+    },
+    select: {
+      jobId: true,
+    },
+  });
+
+  revalidatePath(`/job/${data.jobId}`);
+}
+
+export async function editJobPost(
+  data: z.infer<typeof jobSchema>,
+  jobId: string
+) {
+  const user = await requireUser();
+
+  const req = await request();
+  const decision = await aj.protect(req);
+
+  const validateData = jobSchema.parse(data);
+
+  await prisma.jobPost.update({
+    where: {
+      id: jobId,
+      Company: {
+        userId: user?.id,
+      },
+    },
+    data: {
+      jobDescription: validateData.jobDescription,
+      jobTitle: validateData.jobTitle,
+      employmentType: validateData.employmentType,
+      location: validateData.location,
+      salaryFrom: validateData.salaryFrom,
+      salaryTo: validateData.salaryTo,
+      listingDuration: validateData.listingDuration,
+      benefits: validateData.benefits,
+    },
+  });
+
+  return redirect("/my-jobs");
+}
+
+export async function deleteJobPost(jobId: string) {
+  const user = await requireUser();
+
+  await prisma.jobPost.delete({
+    where: {
+      id: jobId,
+      Company: {
+        userId: user?.id,
+      },
+    },
+  });
+
+  await inngest.send({
+    name: "job/cancle.expiration",
+    data: { jobId: jobId },
+  });
+
+  return redirect("/my-jobs");
 }

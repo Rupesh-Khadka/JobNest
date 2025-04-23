@@ -34,44 +34,50 @@ import { jobSchema } from "@/app/utils/zodSchemas";
 import { SalaryRangeSelector } from "../general/SalaryRangeSelector";
 import JobDescriptionEditor from "../richTextEditor/JobDescriptionEditor";
 import BenefitsSelector from "../general/BenefitsSelector";
-import { JobListingDurationSelector } from "../general/JobListingDurationSelector";
+ 
 import { UploadDropzone } from "../general/UploadThingReexported";
-import { createJob } from "@/app/action";
+import { editJobPost } from "@/app/action";
 
-interface CreateJobFormProps {
-  companyName: string;
-  companyLocation: string;
-  companyAbout: string;
-  companyLogo: string;
-  companyXAccount: string | null;
-  companyWebsite: string;
+interface iAppProps {
+  jobPost: {
+    jobTitle: string;
+    id: string;
+    employmentType: string;
+    location: string;
+    salaryFrom: number;
+    salaryTo: number;
+    jobDescription: string;
+    benefits: string[];
+    listingDuration: number;
+    Company: {
+      location: string;
+      name: string;
+      logo: string;
+      website: string;
+      xAccount: string | null;
+      about: string;
+    };
+  };
 }
 
-export function CreateJobForm({
-  companyAbout,
-  companyLocation,
-  companyLogo,
-  companyXAccount,
-  companyName,
-  companyWebsite,
-}: CreateJobFormProps) {
+export function EditJobForm({ jobPost }: iAppProps) {
   const form = useForm<z.infer<typeof jobSchema>>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
-      benefits: [],
-      companyDescription: companyAbout,
-      companyLocation: companyLocation,
-      companyName: companyName,
-      companyWebsite: companyWebsite,
-      companyXAccount: companyXAccount || "",
-      companyLogo: companyLogo,
-      employmentType: "",
-      jobDescription: "",
-      jobTitle: "",
-      location: "",
-      salaryFrom: 0,
-      salaryTo: 0,
-      listingDuration: 30,
+      benefits: jobPost.benefits,
+      companyDescription: jobPost.Company.about,
+      companyLocation: jobPost.Company.location,
+      companyName: jobPost.Company.name,
+      companyWebsite: jobPost.Company.website,
+      companyXAccount: jobPost.Company.xAccount || "",
+      employmentType: jobPost.employmentType,
+      jobDescription: jobPost.jobDescription,
+      jobTitle: jobPost.jobTitle,
+      location: jobPost.location,
+      salaryFrom: jobPost.salaryFrom,
+      salaryTo: jobPost.salaryTo,
+      companyLogo: jobPost.Company.logo,
+      listingDuration: jobPost.listingDuration,
     },
   });
 
@@ -79,11 +85,11 @@ export function CreateJobForm({
   async function onSubmit(values: z.infer<typeof jobSchema>) {
     try {
       setPending(true);
-      await createJob(values);
+
+      await editJobPost(values, jobPost.id);
     } catch (error) {
-      // toast.error("Something went wrong. Please try again.");
       if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        // toast.error("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.");
       }
     } finally {
       setPending(false);
@@ -264,7 +270,7 @@ export function CreateJobForm({
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select Location" />
                         </SelectTrigger>
                       </FormControl>
@@ -409,25 +415,6 @@ export function CreateJobForm({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Job Listing Duration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FormField
-              control={form.control}
-              name="listingDuration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <JobListingDurationSelector field={field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Submitting..." : "Continue"}
         </Button>

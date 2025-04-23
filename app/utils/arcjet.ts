@@ -1,11 +1,20 @@
 import arcjet, {
   detectBot,
   fixedWindow,
+  protectSignup,
+  sensitiveInfo,
   shield,
-  tokenBucket,
+  slidingWindow,
 } from "@arcjet/next";
 
-export { detectBot, fixedWindow, shield, tokenBucket };
+export {
+  detectBot,
+  fixedWindow,
+  protectSignup,
+  sensitiveInfo,
+  shield,
+  slidingWindow,
+};
 
 export default arcjet({
   key: process.env.ARCJET_KEY!,
